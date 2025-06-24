@@ -49,15 +49,17 @@ Available wines (sample): ${JSON.stringify(recommendations.slice(0, 3), null, 2)
 Please provide wine advice and recommendations based on the user's request. Include specific wine names from the available wines and explain why they're good choices. Keep the response concise and helpful.`
 
   try {
-    // Create OpenAI client with the API key
-    const openaiClient = openai({
-      apiKey:
-        process.env.OPENAI_API_KEY ||
-        "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",
-    })
+    // Check if API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn("OpenAI API key not found, using fallback response")
+      return {
+        message: generateFallbackResponse(message, preferences, recommendations, language),
+        recommendations: recommendations.length > 0 ? recommendations : undefined,
+      }
+    }
 
     const { text } = await generateText({
-      model: openaiClient("gpt-4o"),
+      model: openai("gpt-4o"),
       system: systemPrompt,
       prompt: userPrompt,
       maxTokens: 400,

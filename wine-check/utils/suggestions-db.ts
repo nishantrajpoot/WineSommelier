@@ -149,10 +149,18 @@ export class SuggestionsDB {
   private suggestions: SuggestionEntry[] = []
 
   constructor() {
-    this.loadFromStorage()
+    // Only load from storage if we're in the browser
+    if (typeof window !== "undefined") {
+      this.loadFromStorage()
+    }
   }
 
   private loadFromStorage(): void {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return
+    }
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
@@ -168,6 +176,11 @@ export class SuggestionsDB {
   }
 
   private saveToStorage(): void {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return
+    }
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.suggestions))
     } catch (error) {

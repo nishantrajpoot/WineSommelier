@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, ExternalLink, Euro, ShoppingCart, Plus, Check } from "lucide-react"
 import type { Wine, Language } from "@/types/wine"
 import { getTranslation } from "@/utils/translations"
@@ -13,11 +13,23 @@ interface WinePopupProps {
 }
 
 export function WinePopup({ wine, language, isOpen, onClose }: WinePopupProps) {
-  const [isAddedToCart, setIsAddedToCart] = useState(delhaizeCart.isInCart(wine._id))
-  const [quantity, setQuantity] = useState(delhaizeCart.getItemQuantity(wine._id) || 1)
+  const [isAddedToCart, setIsAddedToCart] = useState(false)
+  const [quantity, setQuantity] = useState(1)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  // Initialize client-side state
+  useEffect(() => {
+    setIsClient(true)
+    if (typeof window !== "undefined") {
+      setIsAddedToCart(delhaizeCart.isInCart(wine._id))
+      setQuantity(delhaizeCart.getItemQuantity(wine._id) || 1)
+    }
+  }, [wine._id])
 
   const handleAddToCart = () => {
+    if (typeof window === "undefined") return
+
     const success = delhaizeCart.addItem(wine, quantity)
     if (success) {
       setIsAddedToCart(true)
@@ -29,13 +41,15 @@ export function WinePopup({ wine, language, isOpen, onClose }: WinePopupProps) {
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity >= 1 && newQuantity <= 10) {
       setQuantity(newQuantity)
-      if (isAddedToCart) {
+      if (isAddedToCart && typeof window !== "undefined") {
         delhaizeCart.updateQuantity(wine._id, newQuantity)
       }
     }
   }
 
   const handleRemoveFromCart = () => {
+    if (typeof window === "undefined") return
+
     delhaizeCart.removeItem(wine._id)
     setIsAddedToCart(false)
     setQuantity(1)

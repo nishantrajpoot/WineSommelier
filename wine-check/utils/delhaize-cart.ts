@@ -13,10 +13,18 @@ export class DelhaizeCart {
   private items: CartItem[] = []
 
   constructor() {
-    this.loadFromStorage()
+    // Only load from storage if we're in the browser
+    if (typeof window !== "undefined") {
+      this.loadFromStorage()
+    }
   }
 
   private loadFromStorage(): void {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return
+    }
+
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY)
       if (stored) {
@@ -32,6 +40,11 @@ export class DelhaizeCart {
   }
 
   private saveToStorage(): void {
+    // Check if we're in the browser environment
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      return
+    }
+
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(this.items))
     } catch (error) {

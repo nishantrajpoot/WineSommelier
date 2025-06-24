@@ -1,9 +1,10 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ShoppingCart, X, Trash2, ExternalLink, List, Copy } from "lucide-react"
 import type { Language } from "@/types/wine"
 import { getTranslation } from "@/utils/translations"
-import { delhaizeCart, type CartItem } from "@/utils/delhaize-cart"
+import { delhaizeCart } from "@/utils/delhaize-cart"
+import { useCart } from "@/hooks/use-cart"
 
 interface CartIndicatorProps {
   language: Language
@@ -11,35 +12,8 @@ interface CartIndicatorProps {
 
 export function CartIndicator({ language }: CartIndicatorProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [itemCount, setItemCount] = useState(0)
   const [showShoppingList, setShowShoppingList] = useState(false)
-
-  useEffect(() => {
-    updateCartDisplay()
-
-    // Listen for storage changes to update cart across tabs
-    const handleStorageChange = () => {
-      updateCartDisplay()
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-
-    // Also update every few seconds to catch changes from the same tab
-    const interval = setInterval(updateCartDisplay, 2000)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      clearInterval(interval)
-    }
-  }, [])
-
-  const updateCartDisplay = () => {
-    const items = delhaizeCart.getItems()
-    const count = delhaizeCart.getItemCount()
-    setCartItems(items)
-    setItemCount(count)
-  }
+  const { cartItems, itemCount, isLoaded, updateCartDisplay } = useCart()
 
   const handleRemoveItem = (wineId: string) => {
     delhaizeCart.removeItem(wineId)
@@ -76,7 +50,8 @@ export function CartIndicator({ language }: CartIndicatorProps) {
     }
   }
 
-  if (itemCount === 0) return null
+  // Don't render until loaded and only if there are items
+  if (!isLoaded || itemCount === 0) return null
 
   return (
     <>
